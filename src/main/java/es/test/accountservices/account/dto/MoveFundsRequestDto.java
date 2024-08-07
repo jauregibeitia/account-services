@@ -19,10 +19,6 @@ public class MoveFundsRequestDto {
         UUID targetAccountId;
 
         @NotNull
-        @ValidCurrency
-        Currency currency;
-
-        @NotNull
         BigDecimal amount;
 
 }

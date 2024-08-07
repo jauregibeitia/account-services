@@ -40,7 +40,6 @@ public class AccountMapper {
         public MoveFundsRequest moveFundsRequestDtoToModel(MoveFundsRequestDto moveFundsRequestDto) {
         return new MoveFundsRequest(moveFundsRequestDto.getSourceAccountId(),
                 moveFundsRequestDto.getTargetAccountId(),
-                moveFundsRequestDto.getCurrency(),
                 moveFundsRequestDto.getAmount());
     }
 }
