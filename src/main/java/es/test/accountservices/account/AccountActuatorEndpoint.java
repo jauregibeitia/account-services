@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
@@ -76,7 +77,7 @@ public class AccountActuatorEndpoint {
                     })})
     @PostMapping
     @ResponseStatus(ACCEPTED)
-    public AccountDto moveFunds(@Valid @RequestBody MoveFundsRequestDto moveFundsRequestDto) {
+    public AccountDto moveFunds(@Valid @RequestBody MoveFundsRequestDto moveFundsRequestDto) throws JSONException {
         MoveFundsRequest moveFundsRequest = accountMapper.moveFundsRequestDtoToModel(moveFundsRequestDto);
         return accountMapper.accountToDto(accountActuatorService.moveFunds(moveFundsRequest));
 

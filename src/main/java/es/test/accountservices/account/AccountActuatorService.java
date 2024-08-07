@@ -1,5 +1,6 @@
 package es.test.accountservices.account;
 
+import es.test.accountservices.account.client.ExchangeRateHttpClient;
 import es.test.accountservices.account.dto.MoveFundsRequestDto;
 import es.test.accountservices.account.exception.AccountNameAlreadyExistsException;
 import es.test.accountservices.account.exception.AccountNotFoundException;
@@ -9,6 +10,7 @@ import es.test.accountservices.account.model.CreateAccountRequest;
 import es.test.accountservices.account.model.MoveFundsRequest;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +26,15 @@ import static java.util.UUID.randomUUID;
 public class AccountActuatorService {
 
     private final AccountRepository accountRepository;
+    private final ExchangeRateHttpClient exchangeRateHttpClient;
 
     @Autowired
     public AccountActuatorService(
-            AccountRepository accountRepository) {
+            AccountRepository accountRepository,
+            ExchangeRateHttpClient exchangeRateHttpClient) {
 
         this.accountRepository = accountRepository;
+        this.exchangeRateHttpClient = exchangeRateHttpClient;
 
     }
 
@@ -71,7 +76,7 @@ public class AccountActuatorService {
         );
     }
 
-    public Account moveFunds(MoveFundsRequest moveFundsRequest) {
+    public Account moveFunds(MoveFundsRequest moveFundsRequest) throws JSONException {
 
         Account sourceAccount = accountRepository.findById(moveFundsRequest.getSourceAccountId())
                 .orElseThrow(() -> new AccountNotFoundException(moveFundsRequest.getSourceAccountId()));
@@ -81,8 +86,13 @@ public class AccountActuatorService {
 
         verifyNonTreasuryAccountBalanceOrThrow(moveFundsRequest, sourceAccount);
 
-        sourceAccount.setBalance(sourceAccount.getBalance().subtract(moveFundsRequest.getAmount()));
-        targetAccount.setBalance(targetAccount.getBalance().add(moveFundsRequest.getAmount()));
+        var amount = convertAmountToDestinationAmountCurrency(
+                sourceAccount.getCurrency().getCurrencyCode(),
+                targetAccount.getCurrency().getCurrencyCode(),
+                moveFundsRequest.getAmount());
+
+        sourceAccount.setBalance(sourceAccount.getBalance().subtract(amount));
+        targetAccount.setBalance(targetAccount.getBalance().add(amount));
 
         accountRepository.save(sourceAccount);
         accountRepository.save(targetAccount);
@@ -96,6 +106,16 @@ public class AccountActuatorService {
             if (sourceAccount.getBalance().subtract(moveFundsRequest.getAmount()).compareTo(BigDecimal.ZERO) < 0 ) {
                 throw new NegativeBalanceForNonTreasuryAccountException(sourceAccount.getAccountId());
             }
+        }
+    }
+
+    private BigDecimal convertAmountToDestinationAmountCurrency(String fromCurrency, String toCurrency, BigDecimal amount) throws JSONException {
+        if (!fromCurrency.equals(toCurrency)) {
+            var rate = exchangeRateHttpClient.getRate(fromCurrency, toCurrency);
+            return amount.multiply(rate);
+        }
+        else {
+            return amount;
         }
     }
 }

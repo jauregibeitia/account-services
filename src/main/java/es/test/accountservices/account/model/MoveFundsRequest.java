@@ -20,7 +20,5 @@ public class MoveFundsRequest {
 
     UUID targetAccountId;
 
-    Currency currency;
-
     BigDecimal amount;
 }
