@@ -5,10 +5,10 @@ import jakarta.validation.Constraint;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = {CreateAccountRequestDtoValidator.class})
-@Target({ElementType.TYPE})
+@Constraint(validatedBy = {CurrencyValidator.class})
+@Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidCreateAccountRequestDto {
+public @interface ValidCurrency {
 
     String message() default "Currency that is not available";
 
