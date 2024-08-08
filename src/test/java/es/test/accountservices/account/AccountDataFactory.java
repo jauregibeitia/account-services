@@ -4,6 +4,7 @@ import es.test.accountservices.account.dto.CreateAccountRequestDto;
 import es.test.accountservices.account.dto.MoveFundsRequestDto;
 import es.test.accountservices.account.model.Account;
 import es.test.accountservices.account.model.CreateAccountRequest;
+import es.test.accountservices.account.model.MoveFundsRequest;
 import lombok.Builder;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -72,6 +73,19 @@ public class AccountDataFactory {
                 ofNullable(accountName).orElse(RandomStringUtils.random(10)),
                 ofNullable(currencyCode).orElse(getRandomCurrencyCode().getCurrencyCode()),
                 ofNullable(treasury).orElse(getRandomBoolean())
+        );
+    }
+
+    @Builder(builderMethodName = "createMoveFundsRequestWithDefaults", builderClassName = "MoveFundsRequestBuilder")
+    public static MoveFundsRequest newMoveFundsRequest(
+            UUID sourceAccountId,
+            UUID targetAccountId,
+            BigDecimal amount
+    ) {
+        return new MoveFundsRequest(
+                ofNullable(sourceAccountId).orElse(randomUUID()),
+                ofNullable(targetAccountId).orElse(randomUUID()),
+                ofNullable(amount).orElse(new BigDecimal(BigInteger.valueOf(new Random().nextInt(100001)), 2))
         );
     }
 
