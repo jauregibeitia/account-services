@@ -9,7 +9,6 @@ public class NotSameAccountIdValidator implements ConstraintValidator<ValidNotSa
     @Override
     public boolean isValid(MoveFundsRequestDto moveFundsRequestDto, ConstraintValidatorContext constraintValidatorContext) {
         return !moveFundsRequestDto.getSourceAccountId().equals(moveFundsRequestDto.getTargetAccountId());
-
     }
 }
 

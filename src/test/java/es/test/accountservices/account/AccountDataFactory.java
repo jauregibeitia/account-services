@@ -1,5 +1,7 @@
 package es.test.accountservices.account;
 
+import es.test.accountservices.account.dto.CreateAccountRequestDto;
+import es.test.accountservices.account.dto.MoveFundsRequestDto;
 import es.test.accountservices.account.model.Account;
 import lombok.Builder;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -11,18 +13,51 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static java.util.Optional.ofNullable;
 import static java.util.UUID.randomUUID;
 
 public class AccountDataFactory {
 
     @Builder(builderMethodName = "acountWithDefaults", builderClassName = "AccountBuilder")
-    public static Account newAccount() {
+    public static Account newAccount(
+            UUID accountId,
+            String accountName,
+            Currency currency,
+            BigDecimal balance,
+            Boolean treasury
+    ) {
         return new Account(
-                randomUUID(),
-                RandomStringUtils.random(10),
-                getRandomCurrencyCode(),
-                new BigDecimal(BigInteger.valueOf(new Random().nextInt(100001)), 2),
-                getRandomBoolean()
+                ofNullable(accountId).orElse(randomUUID()),
+                ofNullable(accountName).orElse(RandomStringUtils.random(10)),
+                ofNullable(currency).orElse(getRandomCurrencyCode()),
+                ofNullable(balance).orElse(new BigDecimal(BigInteger.valueOf(new Random().nextInt(100001)), 2)),
+                ofNullable(treasury).orElse(getRandomBoolean())
+        );
+    }
+
+    @Builder(builderMethodName = "createAccountRequestDtoWithDefaults", builderClassName = "CreateAccountRequestDtoBuilder")
+    public static CreateAccountRequestDto newCreateAccountRequestDto(
+            String accountName,
+            String currencyCode,
+            Boolean treasury
+    ) {
+        return new CreateAccountRequestDto(
+                ofNullable(accountName).orElse(RandomStringUtils.random(10)),
+                ofNullable(currencyCode).orElse(getRandomCurrencyCode().getCurrencyCode()),
+                ofNullable(treasury).orElse(getRandomBoolean())
+        );
+    }
+
+    @Builder(builderMethodName = "createMoveFundsRequestDtoWithDefaults", builderClassName = "MoveFundsRequestDtoBuilder")
+    public static MoveFundsRequestDto newMoveFundsRequestDto(
+            UUID sourceAccountId,
+            UUID targetAccountId,
+            BigDecimal amount
+    ) {
+        return new MoveFundsRequestDto(
+                ofNullable(sourceAccountId).orElse(randomUUID()),
+                ofNullable(targetAccountId).orElse(randomUUID()),
+                ofNullable(amount).orElse(new BigDecimal(BigInteger.valueOf(new Random().nextInt(100001)), 2))
         );
     }
 

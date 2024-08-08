@@ -1,21 +1,16 @@
 package es.test.accountservices.account.dto;
 
 import es.test.accountservices.account.validators.ValidCurrency;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Value;
 
-import java.util.Currency;
-
-@Value
-public class CreateAccountRequestDto{
+public record CreateAccountRequestDto(
         @NotNull
-        String accountName;
-
+        @NotBlank
+        String accountName,
         @NotNull
         @ValidCurrency
-        Currency currency;
-
+        String currencyCode,
         @NotNull
-        Boolean treasury;
-
+        Boolean treasury) {
 }
