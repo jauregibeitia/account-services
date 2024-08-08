@@ -3,6 +3,7 @@ package es.test.accountservices.account;
 import es.test.accountservices.account.dto.CreateAccountRequestDto;
 import es.test.accountservices.account.dto.MoveFundsRequestDto;
 import es.test.accountservices.account.model.Account;
+import es.test.accountservices.account.model.CreateAccountRequest;
 import lombok.Builder;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -58,6 +59,19 @@ public class AccountDataFactory {
                 ofNullable(sourceAccountId).orElse(randomUUID()),
                 ofNullable(targetAccountId).orElse(randomUUID()),
                 ofNullable(amount).orElse(new BigDecimal(BigInteger.valueOf(new Random().nextInt(100001)), 2))
+        );
+    }
+
+    @Builder(builderMethodName = "createCreateAccountRequestWithDefaults", builderClassName = "CreateAccountRequestBuilder")
+    public static CreateAccountRequest newCreateAccountRequest(
+            String accountName,
+            String currencyCode,
+            Boolean treasury
+    ) {
+        return new CreateAccountRequest(
+                ofNullable(accountName).orElse(RandomStringUtils.random(10)),
+                ofNullable(currencyCode).orElse(getRandomCurrencyCode().getCurrencyCode()),
+                ofNullable(treasury).orElse(getRandomBoolean())
         );
     }
 
