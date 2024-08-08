@@ -12,10 +12,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import lombok.extern.log4j.Log4j2;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,9 +22,11 @@ import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Component
-@RestControllerEndpoint(id = "accounts")
+@Log4j2
+@RestController
+@RequestMapping(produces = APPLICATION_JSON_VALUE, path = "/accounts")
 public class AccountActuatorEndpoint {
 
     private final AccountActuatorService accountActuatorService;
@@ -37,8 +38,8 @@ public class AccountActuatorEndpoint {
         this.accountMapper = accountMapper;
     }
 
-    @GetMapping("/{id}")
-    public AccountDto findAccountById(@PathVariable("id") UUID accountId) {
+    @GetMapping("/{accountId}")
+    public AccountDto findAccountById(@PathVariable UUID accountId) {
         return accountMapper.accountToDto(accountActuatorService.getAccountById(accountId));
     }
 
