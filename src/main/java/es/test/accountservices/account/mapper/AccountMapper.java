@@ -22,9 +22,9 @@ public class AccountMapper {
     }
 
     public CreateAccountRequest createAccountRequestDtoToModel(CreateAccountRequestDto createAccountRequestDto) {
-        return new CreateAccountRequest(createAccountRequestDto.getAccountName(),
-                createAccountRequestDto.getCurrency(),
-                createAccountRequestDto.getTreasury());
+        return new CreateAccountRequest(createAccountRequestDto.accountName(),
+                createAccountRequestDto.currencyCode(),
+                createAccountRequestDto.treasury());
     }
 
     public AccountDto accountDtoToModel(Account account) {

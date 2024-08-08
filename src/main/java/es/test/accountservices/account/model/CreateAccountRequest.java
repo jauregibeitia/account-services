@@ -15,7 +15,7 @@ public class CreateAccountRequest {
 
     String accountName;
 
-    Currency currency;
+    String currencyCode;
 
     Boolean treasury;
 }

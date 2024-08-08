@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Log4j2
@@ -44,7 +44,7 @@ public class AccountActuatorEndpoint {
     }
 
     @GetMapping
-    public List<AccountDto> findAccounts() {
+    public List<AccountDto> findAllAccounts() {
         return accountActuatorService.getAllAccounts()
                 .stream().map(accountMapper::accountToDto)
                 .toList();
@@ -58,6 +58,7 @@ public class AccountActuatorEndpoint {
                             )
                     })})
     @PostMapping("create")
+    @ResponseBody
     @ResponseStatus(CREATED)
     public AccountDto createAccount(@Valid @RequestBody CreateAccountRequestDto createAccountRequestDto) {
         CreateAccountRequest createAccountRequest = accountMapper.createAccountRequestDtoToModel(createAccountRequestDto);
@@ -76,8 +77,8 @@ public class AccountActuatorEndpoint {
                                     schema = @Schema(implementation = AccountDto.class)
                             )
                     })})
-    @PostMapping
-    @ResponseStatus(ACCEPTED)
+    @PostMapping("move-funds")
+    @ResponseStatus(OK)
     public AccountDto moveFunds(@Valid @RequestBody MoveFundsRequestDto moveFundsRequestDto) throws JSONException {
         MoveFundsRequest moveFundsRequest = accountMapper.moveFundsRequestDtoToModel(moveFundsRequestDto);
         return accountMapper.accountToDto(accountActuatorService.moveFunds(moveFundsRequest));

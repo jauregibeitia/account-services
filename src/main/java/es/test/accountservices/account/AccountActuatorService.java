@@ -70,7 +70,7 @@ public class AccountActuatorService {
         return new Account(
                 randomUUID(),
                 createAccountRequests.getAccountName(),
-                createAccountRequests.getCurrency(),
+                getCurrencyFromCurrencyCode(createAccountRequests.getCurrencyCode()),
                 BigDecimal.ZERO,
                 createAccountRequests.getTreasury()
         );
@@ -117,6 +117,11 @@ public class AccountActuatorService {
         else {
             return amount;
         }
+    }
+
+    private Currency getCurrencyFromCurrencyCode(String currencyCode){
+        return Currency.getInstance(currencyCode);
+
     }
 }
 

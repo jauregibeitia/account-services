@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidCurrency {
 
-    String message() default "Currency that is not available";
+    String message() default "Currency not available";
 
     Class<?>[] groups() default {};
 
