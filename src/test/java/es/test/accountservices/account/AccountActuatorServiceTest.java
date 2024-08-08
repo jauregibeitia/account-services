@@ -1,10 +1,11 @@
 package es.test.accountservices.account;
 
-
 import es.test.accountservices.account.client.ExchangeRateHttpClient;
 import es.test.accountservices.account.exception.AccountNameAlreadyExistsException;
 import es.test.accountservices.account.exception.AccountNotFoundException;
+import es.test.accountservices.account.exception.NegativeBalanceForNonTreasuryAccountException;
 import es.test.accountservices.account.model.Account;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,9 +122,96 @@ public class AccountActuatorServiceTest {
     }
 
     @Test
-    void moveFunds_success() {
+    void moveFunds_success() throws JSONException {
+        //Given
+        var sourceAccount = AccountDataFactory.acountWithDefaults()
+                .balance(BigDecimal.valueOf(10))
+                .build();
+        var tagetAccount = AccountDataFactory.acountWithDefaults()
+                .balance(BigDecimal.valueOf(4))
+                .build();
+        var moveFundsRequest = AccountDataFactory.createMoveFundsRequestWithDefaults()
+                .sourceAccountId(sourceAccount.getAccountId())
+                .targetAccountId(tagetAccount.getAccountId())
+                .amount(BigDecimal.valueOf(8))
+                .build();
+        given(accountRepository.findById(sourceAccount.getAccountId())).willReturn(Optional.of(sourceAccount));
+        given(accountRepository.findById(tagetAccount.getAccountId())).willReturn(Optional.of(tagetAccount));
+        given(exchangeRateHttpClient.getRate(
+                sourceAccount.getCurrency().getCurrencyCode(),
+                tagetAccount.getCurrency().getCurrencyCode()
+        )).willReturn(BigDecimal.valueOf(1));
+        //When
+        accountActuatorService.moveFunds(moveFundsRequest);
+        //Then
+        verify(accountRepository, times(2)).save(any());
+        assertThat(sourceAccount.getBalance()).isEqualTo(BigDecimal.valueOf(2));
+        assertThat(tagetAccount.getBalance()).isEqualTo(BigDecimal.valueOf(12));
+    }
 
+    @Test
+    void moveFunds_negativeBalanceInTreasuryAccount_success() throws JSONException {
+        //Given
+        var sourceAccount = AccountDataFactory.acountWithDefaults()
+                .treasury(true)
+                .balance(BigDecimal.valueOf(2))
+                .build();
+        var tagetAccount = AccountDataFactory.acountWithDefaults()
+                .balance(BigDecimal.valueOf(4))
+                .build();
+        var moveFundsRequest = AccountDataFactory.createMoveFundsRequestWithDefaults()
+                .sourceAccountId(sourceAccount.getAccountId())
+                .targetAccountId(tagetAccount.getAccountId())
+                .amount(BigDecimal.valueOf(8))
+                .build();
+        given(accountRepository.findById(sourceAccount.getAccountId())).willReturn(Optional.of(sourceAccount));
+        given(accountRepository.findById(tagetAccount.getAccountId())).willReturn(Optional.of(tagetAccount));
+        given(exchangeRateHttpClient.getRate(
+                sourceAccount.getCurrency().getCurrencyCode(),
+                tagetAccount.getCurrency().getCurrencyCode()
+        )).willReturn(BigDecimal.valueOf(1));
+        //When
+        accountActuatorService.moveFunds(moveFundsRequest);
+        //Then
+        verify(accountRepository, times(2)).save(any());
+        assertThat(sourceAccount.getBalance()).isEqualTo(BigDecimal.valueOf(-6));
+        assertThat(tagetAccount.getBalance()).isEqualTo(BigDecimal.valueOf(12));
+    }
 
+    @Test
+    void moveFunds_negativeBalanceInNonTreasuryAccount_ThenExceptionIsThrown() throws JSONException {
+        //Given
+        var sourceAccount = AccountDataFactory.acountWithDefaults()
+                .treasury(false)
+                .balance(BigDecimal.valueOf(2))
+                .build();
+        var tagetAccount = AccountDataFactory.acountWithDefaults()
+                .balance(BigDecimal.valueOf(4))
+                .build();
+        var moveFundsRequest = AccountDataFactory.createMoveFundsRequestWithDefaults()
+                .sourceAccountId(sourceAccount.getAccountId())
+                .targetAccountId(tagetAccount.getAccountId())
+                .amount(BigDecimal.valueOf(8))
+                .build();
+        given(accountRepository.findById(sourceAccount.getAccountId())).willReturn(Optional.of(sourceAccount));
+        given(accountRepository.findById(tagetAccount.getAccountId())).willReturn(Optional.of(tagetAccount));
+        given(exchangeRateHttpClient.getRate(
+                sourceAccount.getCurrency().getCurrencyCode(),
+                tagetAccount.getCurrency().getCurrencyCode()
+        )).willReturn(BigDecimal.valueOf(1));
+        //Then
+        verify(accountRepository, never()).save(any());
+        assertThrows(NegativeBalanceForNonTreasuryAccountException.class, () -> accountActuatorService.moveFunds(moveFundsRequest),
+                "Not enough balance in account with accountId=%s" + sourceAccount.getAccountName());
+    }
+
+    @Test
+    void moveFundsToNonExistingAccount_ThenExceptionIsThrown() {
+        //Given
+        var moveFundsRequest = AccountDataFactory.createMoveFundsRequestWithDefaults().build();
+        //Then
+        assertThrows(AccountNotFoundException.class, () -> accountActuatorService.moveFunds(moveFundsRequest),
+                "Account with accountId=" + moveFundsRequest.getSourceAccountId() + " not found");
     }
 
     private void verifyAccountWasSavedCorrectly(Account account) {
@@ -134,5 +222,4 @@ public class AccountActuatorServiceTest {
         assertThat(savedAccount.getTreasury()).isEqualTo(account.getTreasury());
         assertThat(savedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(0));
     }
-
 }
