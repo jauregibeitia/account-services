@@ -44,7 +44,7 @@ public class AccountActuatorService {
     }
 
     public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
+        return (List<Account>) accountRepository.findAll();
     }
 
     Account createAccount(CreateAccountRequest createAccountRequest) {
