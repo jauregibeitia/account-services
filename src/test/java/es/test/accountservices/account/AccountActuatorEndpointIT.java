@@ -146,9 +146,29 @@ public class AccountActuatorEndpointIT {
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andDo(print());;
         // Then
-        var s = result.andReturn().getResponse();
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountId").value(sourceAccount.getAccountId().toString()));
+
+    }
+
+    @Test
+    public void updateAccount_thenUpdatedAccountIsReturned() throws Exception {
+        //Given
+        var account = AccountDataFactory.acountWithDefaults().build();
+        var updateAccountRequest = AccountDataFactory.createUpdateAccountRequestWithDefaults()
+                .accountId(account.getAccountId())
+                .build();
+
+        given(accountActuatorService.updateAccount(any())).willReturn(account);
+        //When
+        ResultActions result = mockMvc.perform(post("/accounts/update" )
+                        .content(toJson(updateAccountRequest))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andDo(print());;
+        // Then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountId").value(account.getAccountId().toString()));
 
     }
 

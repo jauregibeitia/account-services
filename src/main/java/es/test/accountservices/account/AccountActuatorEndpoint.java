@@ -3,6 +3,7 @@ package es.test.accountservices.account;
 import es.test.accountservices.account.dto.AccountDto;
 import es.test.accountservices.account.dto.CreateAccountRequestDto;
 import es.test.accountservices.account.dto.MoveFundsRequestDto;
+import es.test.accountservices.account.dto.UpdateAccountRequestDto;
 import es.test.accountservices.account.mapper.AccountMapper;
 import es.test.accountservices.account.model.Account;
 import es.test.accountservices.account.model.CreateAccountRequest;
@@ -63,7 +64,7 @@ public class AccountActuatorEndpoint {
     public AccountDto createAccount(@Valid @RequestBody CreateAccountRequestDto createAccountRequestDto) {
         CreateAccountRequest createAccountRequest = accountMapper.createAccountRequestDtoToModel(createAccountRequestDto);
 
-        Account accountCreated = accountActuatorService.createAccount(createAccountRequest);
+        var accountCreated = accountActuatorService.createAccount(createAccountRequest);
 
         return accountMapper.accountToDto(accountCreated);
 
@@ -80,8 +81,16 @@ public class AccountActuatorEndpoint {
     @PostMapping("move-funds")
     @ResponseStatus(OK)
     public AccountDto moveFunds(@Valid @RequestBody MoveFundsRequestDto moveFundsRequestDto) throws JSONException {
-        MoveFundsRequest moveFundsRequest = accountMapper.moveFundsRequestDtoToModel(moveFundsRequestDto);
+        var moveFundsRequest = accountMapper.moveFundsRequestDtoToModel(moveFundsRequestDto);
         return accountMapper.accountToDto(accountActuatorService.moveFunds(moveFundsRequest));
+
+    }
+
+    @PostMapping("update")
+    @ResponseStatus(OK)
+    public AccountDto moveFunds(@Valid @RequestBody UpdateAccountRequestDto updateAccountRequestDto) throws JSONException {
+        var updateAccountRequest = accountMapper.updateAccountRequestDtoToModel(updateAccountRequestDto);
+        return accountMapper.accountToDto(accountActuatorService.updateAccount(updateAccountRequest));
 
     }
 }

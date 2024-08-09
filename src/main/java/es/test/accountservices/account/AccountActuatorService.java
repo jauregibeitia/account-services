@@ -2,12 +2,14 @@ package es.test.accountservices.account;
 
 import es.test.accountservices.account.client.ExchangeRateHttpClient;
 import es.test.accountservices.account.dto.MoveFundsRequestDto;
+import es.test.accountservices.account.dto.UpdateAccountRequestDto;
 import es.test.accountservices.account.exception.AccountNameAlreadyExistsException;
 import es.test.accountservices.account.exception.AccountNotFoundException;
 import es.test.accountservices.account.exception.NegativeBalanceForNonTreasuryAccountException;
 import es.test.accountservices.account.model.Account;
 import es.test.accountservices.account.model.CreateAccountRequest;
 import es.test.accountservices.account.model.MoveFundsRequest;
+import es.test.accountservices.account.model.UpdateAccountRequest;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.json.JSONException;
@@ -49,20 +51,18 @@ public class AccountActuatorService {
 
     Account createAccount(CreateAccountRequest createAccountRequest) {
 
-        verifyAccountNameIsUniqueOrThrow(createAccountRequest);
+        verifyAccountNameIsUniqueOrThrow(createAccountRequest.getAccountName());
 
         Account accountToCreate = createAccountRequestToNewAccount(createAccountRequest);
 
         val accountCreated = accountRepository.save(accountToCreate);
 
         return accountCreated;
-
-
     }
 
-    private void verifyAccountNameIsUniqueOrThrow(CreateAccountRequest createAccountRequest) {
-        if (accountRepository.findByAccountName(createAccountRequest.getAccountName()).isPresent()) {
-            throw new AccountNameAlreadyExistsException(createAccountRequest.getAccountName());
+    private void verifyAccountNameIsUniqueOrThrow(String accountName) {
+        if (accountRepository.findByAccountName(accountName).isPresent()) {
+            throw new AccountNameAlreadyExistsException(accountName);
         }
     }
 
@@ -99,6 +99,34 @@ public class AccountActuatorService {
 
         return sourceAccount;
 
+    }
+
+    Account updateAccount(UpdateAccountRequest updateAccountRequest) {
+        Account account = accountRepository.findById(updateAccountRequest.getAccountId())
+                .orElseThrow(() -> new AccountNotFoundException(updateAccountRequest.getAccountId()));
+
+        Boolean isUpdated = false;
+
+        if(!updateAccountRequest.getAccountName().isEmpty()) {
+            verifyAccountNameIsUniqueOrThrow(updateAccountRequest.getAccountName());
+            if(!updateAccountRequest.getAccountName().equals(account.getAccountName())) {
+                account.setAccountName(updateAccountRequest.getAccountName());
+                isUpdated = true;
+            }
+        }
+
+        if(!updateAccountRequest.getCurrencyCode().isEmpty()) {
+            var fromCurrencyCode = account.getCurrency().getCurrencyCode();
+            var toCurrencyCode = updateAccountRequest.getCurrencyCode();
+            if(!fromCurrencyCode.equals(fromCurrencyCode)) {
+                account.setBalance(convertAmountToDestinationAmountCurrency(fromCurrencyCode,
+                        toCurrencyCode, account.getBalance()));
+                isUpdated = true;
+            }
+
+        }
+
+        return ((isUpdated) ? accountRepository.save(account) : account);
     }
 
     private void verifyNonTreasuryAccountBalanceOrThrow(MoveFundsRequest moveFundsRequest, Account sourceAccount) {

@@ -171,9 +171,8 @@ class AccountActuatorServiceTest {
         var sourceAccount = givenAccountWithBalance(BigDecimal.valueOf(2));
         sourceAccount.setTreasury(false);
         var targetAccount = givenAccountWithBalance(BigDecimal.valueOf(4));
-
         var moveFundsRequest = givenNewMoveFundsRequest(sourceAccount, targetAccount, BigDecimal.valueOf(8));
-
+        //EWhen
         given(accountRepository.findById(sourceAccount.getAccountId())).willReturn(Optional.of(sourceAccount));
         given(accountRepository.findById(targetAccount.getAccountId())).willReturn(Optional.of(targetAccount));
         given(exchangeRateHttpClient.getRate(
@@ -193,6 +192,67 @@ class AccountActuatorServiceTest {
         //Then
         assertThrows(AccountNotFoundException.class, () -> accountActuatorService.moveFunds(moveFundsRequest),
                 "Account with accountId=" + moveFundsRequest.getSourceAccountId() + " not found");
+    }
+
+    @Test
+    void updateAccount_success_accountIsUpdated() throws JSONException {
+        //Given
+        var account = givenAccountWithBalance(BigDecimal.valueOf(2));
+        var updateAccountRequest = AccountDataFactory.createUpdateAccountRequestWithDefaults()
+                .accountId(account.getAccountId())
+                .build();
+        given(accountRepository.findById(updateAccountRequest.getAccountId())).willReturn(Optional.of(account));
+        given(exchangeRateHttpClient.getRate(
+                account.getCurrency().getCurrencyCode(),
+                updateAccountRequest.getCurrencyCode()
+        )).willReturn(BigDecimal.valueOf(2));
+        //When
+        accountActuatorService.updateAccount(updateAccountRequest);
+        //Then
+        verify(accountRepository, times(1)).save(any());
+    }
+
+    @Test
+    void updateAccount_success_accountIsNotUpdated() throws JSONException {
+        //Given
+        var account = givenAccountWithBalance(BigDecimal.valueOf(2));
+        var updateAccountRequest = AccountDataFactory.createUpdateAccountRequestWithDefaults()
+                .accountId(account.getAccountId())
+                .accountName(account.getAccountName())
+                .currencyCode(account.getCurrency().getCurrencyCode())
+                .build();
+        given(accountRepository.findById(updateAccountRequest.getAccountId())).willReturn(Optional.of(account));
+        given(exchangeRateHttpClient.getRate(
+                account.getCurrency().getCurrencyCode(),
+                updateAccountRequest.getCurrencyCode()
+        )).willReturn(BigDecimal.valueOf(2));
+        //When
+        accountActuatorService.updateAccount(updateAccountRequest);
+        //Then
+        verify(accountRepository, never()).save(any());
+    }
+
+    @Test
+    void updateAccount_accountIdNotExisting_ThenExceptionIsThrown() {
+        //Given
+        var updateAccountRequest = AccountDataFactory.createUpdateAccountRequestWithDefaults().build();
+        //Then
+        assertThrows(AccountNotFoundException.class, () -> accountActuatorService.updateAccount(updateAccountRequest),
+                "Account with accountId=" + updateAccountRequest.getAccountId() + " not found");
+    }
+
+    @Test
+    void updateAccount_accountNameAlreadyExists_ThenExceptionIsThrown() throws JSONException {
+        var account = AccountDataFactory.acountWithDefaults().build();
+        var updateAccountRequest = AccountDataFactory.createUpdateAccountRequestWithDefaults()
+                .accountName(account.getAccountName())
+                .build();
+        given(accountRepository.findById(updateAccountRequest.getAccountId())).willReturn(Optional.of(account));
+        given(accountRepository.findByAccountName(updateAccountRequest.getAccountName())).willReturn(Optional.of(account));
+        //Then
+        assertThrows(AccountNameAlreadyExistsException.class, () -> accountActuatorService.updateAccount(updateAccountRequest),
+                "Account with name=" + account.getAccountName() + " already exists");
+        verify(accountRepository, never()).save(any());
     }
 
     private void verifyAccountWasSavedCorrectly(Account account) {
