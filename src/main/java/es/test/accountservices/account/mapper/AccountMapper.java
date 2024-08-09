@@ -3,9 +3,11 @@ package es.test.accountservices.account.mapper;
 import es.test.accountservices.account.dto.AccountDto;
 import es.test.accountservices.account.dto.CreateAccountRequestDto;
 import es.test.accountservices.account.dto.MoveFundsRequestDto;
+import es.test.accountservices.account.dto.UpdateAccountRequestDto;
 import es.test.accountservices.account.model.Account;
 import es.test.accountservices.account.model.CreateAccountRequest;
 import es.test.accountservices.account.model.MoveFundsRequest;
+import es.test.accountservices.account.model.UpdateAccountRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,5 +43,11 @@ public class AccountMapper {
         return new MoveFundsRequest(moveFundsRequestDto.getSourceAccountId(),
                 moveFundsRequestDto.getTargetAccountId(),
                 moveFundsRequestDto.getAmount());
+    }
+
+    public UpdateAccountRequest updateAccountRequestDtoToModel(UpdateAccountRequestDto updateAccountRequestDto) {
+        return new UpdateAccountRequest(updateAccountRequestDto.accountId(),
+                updateAccountRequestDto.accountName(),
+                updateAccountRequestDto.currencyCode());
     }
 }

@@ -73,6 +73,23 @@ public class AccountActuatorEndpointTest {
 
     }
 
+    @Test
+    public void updateAccountWithInvalidCurrencyCode_thenExceptionIsThrown() throws Exception {
+        //Given
+        var createAccountRequestDto = AccountDataFactory.createUpdateAccountRequestWithDefaults()
+                .currencyCode("XsdfsddsXX")
+                .build();
+        //Expect
+        String error =  mockMvc.perform(post("/accounts/update" )
+                        .content(toJson(createAccountRequestDto))
+                        .contentType(APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException().getMessage();
+
+        assertTrue(StringUtils.contains(error, "Currency not available"));
+
+    }
+
     public static String toJson(Object object) throws JsonProcessingException {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         return ow.writeValueAsString(object);
