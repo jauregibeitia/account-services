@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Currency;
-
 import static lombok.AccessLevel.PRIVATE;
 
 @Data
