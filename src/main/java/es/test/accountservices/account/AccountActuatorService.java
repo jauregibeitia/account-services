@@ -1,8 +1,6 @@
 package es.test.accountservices.account;
 
 import es.test.accountservices.account.client.ExchangeRateHttpClient;
-import es.test.accountservices.account.dto.MoveFundsRequestDto;
-import es.test.accountservices.account.dto.UpdateAccountRequestDto;
 import es.test.accountservices.account.exception.AccountNameAlreadyExistsException;
 import es.test.accountservices.account.exception.AccountNotFoundException;
 import es.test.accountservices.account.exception.NegativeBalanceForNonTreasuryAccountException;
